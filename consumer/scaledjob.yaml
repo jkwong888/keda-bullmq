@@ -1,0 +1,84 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: redis-scaledjob
+  namespace: consumer
+  annotations:
+    autoscaling.keda.sh/pause: "false"
+spec:
+  jobTargetRef:
+    parallelism: 1
+    completions: 1
+    activeDeadlineSeconds: 600 # max job length run time
+    template:
+      spec:
+        containers:
+        - name: consumer
+          image: gcr.io/jkwng-images/keda-bullmq-consumer:latest
+          imagePullPolicy: Always
+          env:
+          - name: REDIS_QUEUE_HOST
+            value: 10.28.0.3
+          - name: REDIS_QUEUE_PORT
+            value: "6379"
+          - name: PORT
+            value: "8080"
+          - name: JOB_RUN_TIME_SECS
+            value: "60"
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+            limits:
+              cpu: "1"         
+        restartPolicy: Never
+    backoffLimit: 0
+  maxReplicaCount: 10 # maximum 10 jobs running at once
+  pollingInterval: 10  # how often to check the queue. Optional. Default: 30 seconds
+  successfulJobsHistoryLimit: 5 # how many jobs to keep around in kubernetes. use bullmq to keep track of longer history
+  failedJobsHistoryLimit: 5 # how many failed jobs to keep around in kubernetes. use bullmq to keep track of longer history
+  rollout:
+    strategy: gradual
+    propagationPolicy: foreground
+  scalingStrategy:
+    strategy: "accurate"
+  triggers:
+    #- type: redis
+    #  metadata:
+    #    address: 10.28.0.3:6379
+    - type: redis-cluster
+      metadata:
+        addresses: 10.28.0.3:6379
+        listName: "{dataSchedule}:dataSchedule:stalled" # make sure we start pods to handle stalled jobs too
+        listLength: "1" # 1 pending job -> 1 pod
+      # authenticationRef:
+      #   name: keda-trigger-auth-redis-secret
+    - type: redis-cluster
+      metadata:
+        addresses: 10.28.0.3:6379
+        listName: "{dataSchedule}:dataSchedule:wait"
+        listLength: "1" # 1 pending job -> 1 pod
+      # authenticationRef:
+      #   name: keda-trigger-auth-redis-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+type: Opaque
+data:
+  redis_username: YWRtaW4=
+  redis_password: YWRtaW4=
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-trigger-auth-redis-secret
+spec:
+  secretTargetRef:
+  - parameter: username
+    name: db-secret
+    key: redis_username
+  - parameter: password
+    name: db-secret
+    key: redis_password

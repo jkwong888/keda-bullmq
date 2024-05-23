@@ -1,0 +1,8 @@
+resources:
+  - redisinsights.yaml
+  - service.yaml
+  - namespace.yaml
+  - httproute.yaml
+  - gcpbackendpolicy.yaml
+
+namespace: redisinsight

@@ -1,0 +1,18 @@
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1beta1
+metadata:
+  name: redisinsight
+  namespace: redisinsight
+  labels:
+    gateway: external-http
+spec:
+  parentRefs:
+  - name: my-gateway
+    namespace: default
+    sectionName: https
+  hostnames:
+  - "redisinsight.keda-bullmq.gcp.jkwong.info"
+  rules:
+  - backendRefs:
+    - name: redisinsight-service
+      port: 80

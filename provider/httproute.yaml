@@ -1,0 +1,17 @@
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1beta1
+metadata:
+  name: provider
+  labels:
+    gateway: my-gateway
+spec:
+  parentRefs:
+  - name: my-gateway
+    namespace: default
+    sectionName: https
+  hostnames:
+  - "provider.keda-bullmq.gcp.jkwong.info"
+  rules:
+  - backendRefs:
+    - name: provider
+      port: 8080

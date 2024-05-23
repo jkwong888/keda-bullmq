@@ -1,0 +1,46 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: my-gateway
+  namespace: default
+  annotations:
+    networking.gke.io/certmap: keda-bullmq-cert-map
+
+spec:
+  addresses:
+  - type: NamedAddress
+    value: keda-bullmq
+  gatewayClassName: gke-l7-global-external-managed 
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      kinds:
+      - kind: HTTPRoute
+      namespaces:
+        from: Same
+  - name: https
+    protocol: HTTPS
+    port: 443
+    allowedRoutes:
+      kinds:
+      - kind: HTTPRoute
+      namespaces:
+        from: All
+---
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1beta1
+metadata:
+  name: redirect
+  namespace: default
+spec:
+  parentRefs:
+  - namespace: default
+    name: my-gateway
+    sectionName: http
+  rules:
+  - filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https

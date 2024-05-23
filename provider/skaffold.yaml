@@ -8,7 +8,7 @@ build:
       docker:
         dockerfile: Dockerfile
   googleCloudBuild:
-    projectId: autopilot-396218
+    projectId: jkwng-gke-keda-bullmq
 manifests:
   rawYaml:
     - provider.yaml

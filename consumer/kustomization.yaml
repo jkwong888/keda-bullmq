@@ -1,0 +1,7 @@
+resources:
+  - namespace.yaml
+  #- consumer.yaml
+  #- redis-hpa.yaml
+  - scaledjob.yaml
+
+namespace: consumer

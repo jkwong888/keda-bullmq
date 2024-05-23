@@ -1,0 +1,15 @@
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: backend-policy
+spec:
+  default:
+    iap:
+      enabled: true
+      oauth2ClientSecret:
+        name: iap-secret
+      clientID: 889021642582-09kfurm4gkujh93s5ib14devff6if1g4.apps.googleusercontent.com
+  targetRef:
+    group: ""
+    kind: Service
+    name: redisinsight-service

@@ -1,36 +1,44 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: node
+  name: provider
 spec:
   ports:
   - port: 8080
-  type: LoadBalancer
+  type: ClusterIP
   selector:
-    app: node
+    app: provider
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: node
+  name: provider
 spec:
   selector:
     matchLabels:
-      app: node
+      app: provider
   template:
     metadata:
       labels:
-        app: node
+        app: provider
     spec:
       containers:
       - name: node
-        image: bullmq-producer
+        image: gcr.io/jkwng-images/keda-bullmq-provider:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:
         - name: REDIS_QUEUE_HOST
-          value: REDIS_IP
+          value: 10.28.0.3
         - name: REDIS_QUEUE_PORT
           value: "6379"
         - name: PORT
           value: "8080"
+        resources:
+          requests:
+            cpu: "250m"
+            memory: 512Mi
+          limits:
+            cpu: "250m"
+            memory: 512Mi
